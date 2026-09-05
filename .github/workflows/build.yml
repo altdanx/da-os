@@ -48,6 +48,13 @@ jobs:
 
       - uses: sigstore/cosign-installer@v3
 
+      # push-to-registry se autentica por dentro y no deja sesion para cosign,
+      # que abre su propia conexion a ghcr para subir la firma.
+      - name: Login de cosign en ghcr
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Firmar
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
