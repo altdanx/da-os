@@ -65,11 +65,11 @@ cualquier imagen propia. A partir de ahi ya se verifica sola.
 Como comprobar en que estado estas:
 
 ```
-bootc status | head -3
+rpm-ostree status | head -6
 ```
 
 - `ostree-image-signed:` → esta verificando la firma
-- `ostree-unverified-image:` → no la esta verificando
+- `ostree-unverified-registry:` → no la esta verificando
 
 Para exigirlo explicitamente: `sudo bootc switch --enforce-container-sigpolicy ...`
 

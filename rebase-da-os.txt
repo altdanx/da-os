@@ -50,8 +50,8 @@ sudo bootc upgrade
 
 # --- Mira el prefijo de la primera linea: --------------------
 #     ostree-image-signed:      -> SI verifica
-#     ostree-unverified-image:  -> NO verifica
-bootc status | head -3
+#     ostree-unverified-registry:  -> NO verifica
+rpm-ostree status | head -6
 
 # --- La clave publica debe estar dentro del sistema ---------
 ls -l /etc/pki/containers/da-os.pub
