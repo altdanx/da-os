@@ -51,7 +51,13 @@ jobs:
       - name: Firmar
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          COSIGN_PASSWORD: ""
           DIGEST: ${{ steps.push.outputs.digest }}
         run: |
+          # comprobar que el secret llego antes de intentar firmar
+          if [ -z "${COSIGN_PRIVATE_KEY}" ]; then
+            echo "::error::SIGNING_SECRET vacio o no configurado"
+            exit 1
+          fi
           cosign sign -y --key env://COSIGN_PRIVATE_KEY \
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}
