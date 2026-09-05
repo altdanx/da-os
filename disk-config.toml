@@ -1,0 +1,6 @@
+# Usuario inicial de la ISO. Cambia la contrasena antes de generar la imagen,
+# y cambiala otra vez en el primer arranque de cada maquina.
+[[customizations.user]]
+name = "da"
+password = "cambiame"
+groups = ["wheel"]

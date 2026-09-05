@@ -1,0 +1,31 @@
+name: ISO de instalacion
+
+on:
+  workflow_dispatch:          # solo a mano: la ISO solo hace falta al instalar
+
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Liberar espacio
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h /
+
+      - name: Construir ISO
+        uses: osbuild/bootc-image-builder-action@main
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/da-os:latest
+          types: anaconda-iso
+          config: ./disk-config.toml
+          rootfs: btrfs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: da-os-iso
+          path: ./output/**/*.iso
+          retention-days: 7

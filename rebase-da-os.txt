@@ -1,0 +1,44 @@
+# ===========================================================
+#  da-os - probar la imagen en local, SIN publicar en ghcr
+#  Copia y pega LINEA A LINEA. No lo ejecutes como script.
+# ===========================================================
+
+# --- 1. Pasar la imagen del storage rootless al de root -----
+#     bootc corre como root y no ve tu storage de usuario.
+podman save localhost/da-os:test | sudo podman load
+
+# --- 2. Comprobar que root ya la tiene ----------------------
+sudo podman images | grep da-os
+
+# --- 3. Apuntar el arranque a la imagen local ---------------
+#     "ostree-unverified-image" porque una build local no va firmada.
+sudo bootc switch --transport containers-storage localhost/da-os:test
+
+# --- 4. Ver el nuevo deployment antes de reiniciar ----------
+sudo bootc status
+
+# --- 5. Reiniciar ------------------------------------------
+systemctl reboot
+
+
+# ===========================================================
+#  SI ALGO VA MAL: volver a Bazzite
+# ===========================================================
+
+# --- Opcion A: en el menu de GRUB elegir el deployment viejo,
+#     arrancar, y luego fijarlo como bueno:
+sudo bootc rollback
+
+# --- Opcion B: volver a la imagen firmada de Bazzite --------
+sudo bootc switch ghcr.io/ublue-os/bazzite:stable
+
+
+# ===========================================================
+#  CUANDO YA ESTE PUBLICADA EN GHCR (sustituye TUUSUARIO)
+# ===========================================================
+
+# --- Pasar a la imagen publicada y firmada ------------------
+sudo bootc switch ghcr.io/altdanx/da-os:latest
+
+# --- A partir de ahi, las actualizaciones son las normales --
+sudo bootc upgrade

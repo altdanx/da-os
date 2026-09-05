@@ -1,0 +1,4 @@
+output/
+*.iso
+cosign.key
+build.log
