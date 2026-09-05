@@ -7,9 +7,10 @@
 FROM ghcr.io/ublue-os/bazzite:stable
 
 COPY build.sh /tmp/build.sh
+COPY cosign.pub /tmp/da-os.pub
 
 RUN --mount=type=cache,dst=/var/cache/libdnf5,sharing=locked \
     /tmp/build.sh && \
-    rm -f /tmp/build.sh && \
+    rm -f /tmp/build.sh /tmp/da-os.pub && \
     rm -rf /tmp/* /var/tmp/* && \
     ostree container commit

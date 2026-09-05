@@ -41,3 +41,40 @@ just rebase-local   # probar sin publicar (pide sudo)
 
 Publicacion: GitHub Actions reconstruye a diario tras el build de Bazzite.
 La ISO se genera a mano desde la pestana Actions -> "ISO de instalacion".
+
+## Firma y actualizaciones
+
+**Atomicas: si, sin hacer nada.** Se hereda de bootc/ostree: cada actualizacion
+crea un deployment nuevo, el anterior sigue en el menu de GRUB, y
+`bootc rollback` vuelve atras. Nunca hay un sistema a medio actualizar.
+
+**Firmadas: hay que montarlo, y esta montado en `build.sh` seccion 5.**
+`/etc/containers/policy.json` trae `"default": [{"type": "reject"}]` y solo
+confia en `ghcr.io/ublue-os`. El build anade:
+
+- `/etc/pki/containers/da-os.pub` — la clave publica, dentro de la imagen
+- `/etc/containers/registries.d/da-os.yaml` — `use-sigstore-attachments: true`
+- una entrada `sigstoreSigned` para `ghcr.io/altdanx` en `policy.json`
+
+### El arranque en frio
+
+La clave viaja dentro de la imagen, asi que **el primer `bootc switch` ocurre
+antes de que el sistema tenga con que verificar**. Es inevitable y le pasa a
+cualquier imagen propia. A partir de ahi ya se verifica sola.
+
+Como comprobar en que estado estas:
+
+```
+bootc status | head -3
+```
+
+- `ostree-image-signed:` → esta verificando la firma
+- `ostree-unverified-image:` → no la esta verificando
+
+Para exigirlo explicitamente: `sudo bootc switch --enforce-container-sigpolicy ...`
+
+### Si rotas la clave cosign
+
+Hay que hacerlo en dos pasos o te quedas sin poder actualizar: primero publicar
+una imagen firmada con la clave vieja que ya contenga la clave nueva, actualizar
+las tres maquinas, y solo despues empezar a firmar con la nueva.

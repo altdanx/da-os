@@ -88,7 +88,41 @@ for d in \
   ; do ocultar "$d"; done
 
 # ---------------------------------------------------------------------------
-# 5. Marca de identidad, para saber en que estas al hacer bootc status
+# ---------------------------------------------------------------------------
+# 5. Verificacion de firma.
+#    Sin esto bootc descarga la imagen pero NO comprueba quien la construyo:
+#    /etc/containers/policy.json solo confia en ghcr.io/ublue-os.
+#    La clave publica viaja DENTRO de la imagen, asi que desde el primer
+#    upgrade ya se verifica sola. Ver README para el arranque en frio.
+# ---------------------------------------------------------------------------
+install -Dm0644 /tmp/da-os.pub /etc/pki/containers/da-os.pub
+install -Dm0644 /tmp/da-os.pub \
+  /usr/share/ublue-os/signing/etc/pki/containers/da-os.pub
+
+cat > /etc/containers/registries.d/da-os.yaml <<'YAML'
+docker:
+  ghcr.io/altdanx:
+    use-sigstore-attachments: true
+YAML
+
+python3 - <<'PY'
+import json
+ruta = "/etc/containers/policy.json"
+with open(ruta) as f:
+    pol = json.load(f)
+pol.setdefault("transports", {}).setdefault("docker", {})["ghcr.io/altdanx"] = [
+    {
+        "type": "sigstoreSigned",
+        "keyPath": "/etc/pki/containers/da-os.pub",
+        "signedIdentity": {"type": "matchRepository"},
+    }
+]
+with open(ruta, "w") as f:
+    json.dump(pol, f, indent=4)
+print("politica de firmas: anadido ghcr.io/altdanx")
+PY
+
+# 6. Marca de identidad, para saber en que estas al hacer bootc status
 # ---------------------------------------------------------------------------
 cat > /usr/share/ublue-os/da-os-release <<EOF
 DA_OS_BASE=ghcr.io/ublue-os/bazzite:stable
@@ -96,7 +130,7 @@ DA_OS_BUILT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
 
 # ---------------------------------------------------------------------------
-# 6. Limpieza
+# 7. Limpieza
 # ---------------------------------------------------------------------------
 dnf5 clean all
 rm -rf /var/lib/dnf /var/log/*

@@ -42,3 +42,22 @@ sudo bootc switch ghcr.io/altdanx/da-os:latest
 
 # --- A partir de ahi, las actualizaciones son las normales --
 sudo bootc upgrade
+
+
+# ===========================================================
+#  COMPROBAR SI SE ESTA VERIFICANDO LA FIRMA
+# ===========================================================
+
+# --- Mira el prefijo de la primera linea: --------------------
+#     ostree-image-signed:      -> SI verifica
+#     ostree-unverified-image:  -> NO verifica
+bootc status | head -3
+
+# --- La clave publica debe estar dentro del sistema ---------
+ls -l /etc/pki/containers/da-os.pub
+
+# --- Y ghcr.io/altdanx debe salir en la politica ------------
+grep -A4 'ghcr.io/altdanx' /etc/containers/policy.json
+
+# --- Para exigir firma al cambiar de imagen -----------------
+sudo bootc switch --enforce-container-sigpolicy ghcr.io/altdanx/da-os:latest
